@@ -1,0 +1,607 @@
+{% comment %}
+  Collection List Section for Broadcast Theme
+  Responsive circular collection display with slider on mobile
+{% endcomment %}
+
+{% liquid
+  assign collection_1 = collections[section.settings.collection_1] | default: collections.first
+  assign collection_2 = collections[section.settings.collection_2] | default: collections[1]
+  assign collection_3 = collections[section.settings.collection_3] | default: collections[2]
+  assign collection_4 = collections[section.settings.collection_4] | default: collections[3]
+  assign collection_5 = collections[section.settings.collection_5] | default: collections[4]
+  assign collection_6 = collections[section.settings.collection_6] | default: collections[5]
+  
+  assign selected_collections = collection_1 | append: ',' | append: collection_2 | append: ',' | append: collection_3 | append: ',' | append: collection_4 | append: ',' | append: collection_5 | append: ',' | append: collection_6 | split: ','
+%}
+
+<style>
+  /* Collection Lsist Section Styles */
+  .collection-list-section {
+    background-color: {{ section.settings.background_color | default: settings.colors_accent_1 }};
+    padding: {{ section.settings.padding_top }}px 0 {{ section.settings.padding_bottom }}px;
+    overflow: hidden;
+  }
+
+  .collection-list-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  .collection-list-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 20px;
+    align-items: center;
+    justify-items: center;
+  }
+
+  .collection-item {
+    text-align: center;
+    transition: transform 0.3s ease;
+    width: 100%;
+    max-width: 180px;
+  }
+
+  .collection-item:hover {
+    transform: translateY(-5px);
+  }
+
+  .collection-image-wrapper {
+    position: relative;
+    overflow: hidden;
+    border-radius: 50%;
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  }
+
+  .collection-image-wrapper:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    transform: scale(1.05);
+  }
+
+  /* Image Size Options */
+  .collection-image-wrapper.size-small {
+    width: 100px;
+    height: 100px;
+  }
+
+  .collection-image-wrapper.size-medium {
+    width: 140px;
+    height: 140px;
+  }
+
+  .collection-image-wrapper.size-large {
+    width: 180px;
+    height: 180px;
+  }
+
+  .collection-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    transition: transform 0.3s ease;
+  }
+
+  .collection-image:hover {
+    transform: scale(1.1);
+  }
+
+  .collection-title {
+    color: {{ section.settings.text_color | default: '#ffffff' }};
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.3;
+    margin: 0;
+    text-decoration: none;
+    transition: color 0.3s ease;
+  }
+
+  .collection-title:hover {
+    color: {{ section.settings.text_hover_color | default: '#f0f0f0' }};
+  }
+
+  .collection-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+
+  /* Mobile Slider Styles */
+  .collection-slider {
+    display: none;
+    position: relative;
+  }
+
+  .collection-slider-wrapper {
+    overflow: hidden;
+    margin: 0 -10px;
+  }
+
+  .collection-slider-track {
+    display: flex;
+    transition: transform 0.3s ease;
+    padding: 0 10px;
+  }
+
+  .collection-slider-item {
+    flex: 0 0 calc(50% - 10px);
+    margin: 0 5px;
+    text-align: center;
+  }
+
+  .slider-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+    gap: 15px;
+  }
+
+  .slider-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    font-size: 18px;
+  }
+
+  .slider-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: scale(1.1);
+  }
+
+  .slider-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  .slider-btn:disabled:hover {
+    transform: none;
+  }
+
+  .slider-dots {
+    display: flex;
+    gap: 8px;
+  }
+
+  .slider-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .slider-dot.active {
+    background: white;
+    transform: scale(1.3);
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .collection-list-grid {
+      display: none;
+    }
+    
+    .collection-slider {
+      display: block;
+    }
+
+    .collection-list-container {
+      padding: 0 15px;
+    }
+
+    .collection-image-wrapper.size-small {
+      width: 120px;
+      height: 120px;
+    }
+
+    .collection-image-wrapper.size-medium {
+      width: 140px;
+      height: 140px;
+    }
+
+    .collection-image-wrapper.size-large {
+      width: 160px;
+      height: 160px;
+    }
+
+    .collection-title {
+      font-size: 14px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .collection-slider-item {
+      flex: 0 0 calc(50% - 8px);
+      margin: 0 4px;
+    }
+
+    .collection-image-wrapper.size-small {
+      width: 100px;
+      height: 100px;
+    }
+
+    .collection-image-wrapper.size-medium {
+      width: 120px;
+      height: 120px;
+    }
+
+    .collection-image-wrapper.size-large {
+      width: 140px;
+      height: 140px;
+    }
+
+    .collection-title {
+      font-size: 13px;
+    }
+  }
+
+  /* Loading Animation */
+  .collection-image-wrapper::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transform: translateX(-100%);
+    animation: shimmer 1.5s infinite;
+    z-index: 1;
+  }
+
+  @keyframes shimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+</style>
+
+<div class="collection-list-section">
+  <div class="collection-list-container">
+    
+    <!-- Desktop Grid View -->
+    <div class="collection-list-grid">
+      {% for collection in selected_collections limit: 6 %}
+        {% if collection != blank %}
+          <div class="collection-item">
+            <a href="{{ collection.url }}" class="collection-link">
+              <div class="collection-image-wrapper size-{{ section.settings.image_size }}">
+                {% if collection.featured_image %}
+                  <img 
+                    src="{{ collection.featured_image | img_url: '400x400' }}" 
+                    alt="{{ collection.title | escape }}"
+                    class="collection-image"
+                    loading="lazy"
+                    width="200"
+                    height="200"
+                  >
+                {% else %}
+                  <div class="collection-image" style="background: linear-gradient(45deg, #f0f0f0, #e0e0e0);"></div>
+                {% endif %}
+              </div>
+              <h3 class="collection-title">{{ collection.title | truncate: 20 }}</h3>
+            </a>
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    <!-- Mobile Slider View -->
+    <div class="collection-slider">
+      <div class="collection-slider-wrapper">
+        <div class="collection-slider-track" id="collectionSliderTrack">
+          {% for collection in selected_collections limit: 6 %}
+            {% if collection != blank %}
+              <div class="collection-slider-item">
+                <div class="collection-item">
+                  <a href="{{ collection.url }}" class="collection-link">
+                    <div class="collection-image-wrapper size-{{ section.settings.image_size }}">
+                      {% if collection.featured_image %}
+                        <img 
+                          src="{{ collection.featured_image | img_url: '400x400' }}" 
+                          alt="{{ collection.title | escape }}"
+                          class="collection-image"
+                          loading="lazy"
+                          width="200"
+                          height="200"
+                        >
+                      {% else %}
+                        <div class="collection-image" style="background: linear-gradient(45deg, #f0f0f0, #e0e0e0);"></div>
+                      {% endif %}
+                    </div>
+                    <h3 class="collection-title">{{ collection.title | truncate: 20 }}</h3>
+                  </a>
+                </div>
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+      
+      <div class="slider-controls">
+        <button class="slider-btn" id="prevBtn" aria-label="Previous">‹</button>
+        <div class="slider-dots" id="sliderDots"></div>
+        <button class="slider-btn" id="nextBtn" aria-label="Next">›</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // Collection List Slider JavaScript
+  document.addEventListener('DOMContentLoaded', function() {
+    const slider = document.getElementById('collectionSliderTrack');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const dotsContainer = document.getElementById('sliderDots');
+    
+    if (!slider) return;
+
+    const items = slider.querySelectorAll('.collection-slider-item');
+    const itemsPerPage = 2; // Show 2 items per page on mobile
+    const totalPages = Math.ceil(items.length / itemsPerPage);
+    let currentPage = 0;
+
+    // Create dots
+    function createDots() {
+      dotsContainer.innerHTML = '';
+      for (let i = 0; i < totalPages; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'slider-dot';
+        if (i === 0) dot.classList.add('active');
+        dot.addEventListener('click', () => goToPage(i));
+        dotsContainer.appendChild(dot);
+      }
+    }
+
+    // Update slider position
+    function updateSlider() {
+      const translateX = -(currentPage * 100);
+      slider.style.transform = `translateX(${translateX}%)`;
+      
+      // Update dots
+      const dots = dotsContainer.querySelectorAll('.slider-dot');
+      dots.forEach((dot, index) => {
+        dot.classList.toggle('active', index === currentPage);
+      });
+
+      // Update button states
+      prevBtn.disabled = currentPage === 0;
+      nextBtn.disabled = currentPage === totalPages - 1;
+    }
+
+    // Go to specific page
+    function goToPage(page) {
+      currentPage = Math.max(0, Math.min(page, totalPages - 1));
+      updateSlider();
+    }
+
+    // Previous button
+    prevBtn.addEventListener('click', () => {
+      if (currentPage > 0) {
+        goToPage(currentPage - 1);
+      }
+    });
+
+    // Next button
+    nextBtn.addEventListener('click', () => {
+      if (currentPage < totalPages - 1) {
+        goToPage(currentPage + 1);
+      }
+    });
+
+    // Touch/Swipe support
+    let startX = 0;
+    let currentX = 0;
+    let isDragging = false;
+
+    slider.addEventListener('touchstart', (e) => {
+      startX = e.touches[0].clientX;
+      isDragging = true;
+      slider.style.transition = 'none';
+    });
+
+    slider.addEventListener('touchmove', (e) => {
+      if (!isDragging) return;
+      e.preventDefault();
+      currentX = e.touches[0].clientX;
+      const deltaX = currentX - startX;
+      const currentTranslate = -(currentPage * 100);
+      const newTranslate = currentTranslate + (deltaX / slider.offsetWidth) * 100;
+      slider.style.transform = `translateX(${newTranslate}%)`;
+    });
+
+    slider.addEventListener('touchend', () => {
+      if (!isDragging) return;
+      isDragging = false;
+      slider.style.transition = 'transform 0.3s ease';
+      
+      const deltaX = currentX - startX;
+      const threshold = slider.offsetWidth * 0.2; // 20% of width
+      
+      if (Math.abs(deltaX) > threshold) {
+        if (deltaX > 0 && currentPage > 0) {
+          goToPage(currentPage - 1);
+        } else if (deltaX < 0 && currentPage < totalPages - 1) {
+          goToPage(currentPage + 1);
+        } else {
+          updateSlider();
+        }
+      } else {
+        updateSlider();
+      }
+    });
+
+    // Initialize
+    createDots();
+    updateSlider();
+
+    // Auto-play (optional)
+    {% if section.settings.autoplay %}
+      setInterval(() => {
+        if (currentPage < totalPages - 1) {
+          goToPage(currentPage + 1);
+        } else {
+          goToPage(0);
+        }
+      }, {{ section.settings.autoplay_delay | default: 5000 }});
+    {% endif %}
+  });
+</script>
+
+{% schema %}
+{
+  "name": "Collection List",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Collection Selection"
+    },
+    {
+      "type": "collection",
+      "id": "collection_1",
+      "label": "Collection 1"
+    },
+    {
+      "type": "collection",
+      "id": "collection_2",
+      "label": "Collection 2"
+    },
+    {
+      "type": "collection",
+      "id": "collection_3",
+      "label": "Collection 3"
+    },
+    {
+      "type": "collection",
+      "id": "collection_4",
+      "label": "Collection 4"
+    },
+    {
+      "type": "collection",
+      "id": "collection_5",
+      "label": "Collection 5"
+    },
+    {
+      "type": "collection",
+      "id": "collection_6",
+      "label": "Collection 6"
+    },
+    {
+      "type": "header",
+      "content": "Design Settings"
+    },
+    {
+      "type": "select",
+      "id": "image_size",
+      "label": "Image Size",
+      "options": [
+        {
+          "value": "small",
+          "label": "Small"
+        },
+        {
+          "value": "medium",
+          "label": "Medium"
+        },
+        {
+          "value": "large",
+          "label": "Large"
+        }
+      ],
+      "default": "medium"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background Color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "text_hover_color",
+      "label": "Text Hover Color",
+      "default": "#f0f0f0"
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding top",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding bottom",
+      "default": 60
+    },
+    {
+      "type": "header",
+      "content": "Mobile Slider Settings"
+    },
+    {
+      "type": "checkbox",
+      "id": "autoplay",
+      "label": "Enable autoplay",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "autoplay_delay",
+      "min": 3000,
+      "max": 10000,
+      "step": 500,
+      "unit": "ms",
+      "label": "Autoplay delay",
+      "default": 5000
+    }
+  ],
+  "presets": [
+    {
+      "name": "Collection List",
+      "settings": {
+        "image_size": "medium",
+        "background_color": "#000000",
+        "text_color": "#ffffff",
+        "padding_top": 60,
+        "padding_bottom": 60
+      }
+    }
+  ]
+}
+{% endschema %}
